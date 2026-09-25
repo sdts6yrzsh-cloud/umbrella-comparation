@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Omad Barabani - Lug'at Topshiruvchi</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Canvas Confetti CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Font Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: radial-gradient(circle at center, #1e1b4b 0%, #0f172a 100%);
+            min-height: 100vh;
+            color: #f8fafc;
+        }
+
+        /* Glassmorphism card styles */
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        /* Neon Glow Effects */
+        .neon-border {
+            box-shadow: 0 0 15px rgba(168, 85, 247, 0.4), inset 0 0 15px rgba(168, 85, 247, 0.2);
+        }
+
+        /* Custom Scrollbar for list */
+        textarea::-webkit-scrollbar, ul::-webkit-scrollbar {
+            width: 6px;
+        }
+        textarea::-webkit-scrollbar-thumb, ul::-webkit-scrollbar-thumb {
+            background: rgba(168, 85, 247, 0.5);
+            border-radius: 4px;
+        }
+
+        /* Wheel Pointer Animation */
+        @keyframes pulse-pointer {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+        }
+        .animate-pointer {
+            animation: pulse-pointer 1s infinite;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8 flex flex-col justify-between items-center relative overflow-x-hidden">
+
+    <!-- Header -->
+    <header class="text-center mb-6 z-10">
+        <h1 class="text-3xl md:text-5xl font-extrabold tracking-tight bg-gradient-to-r from-purple-400 via-pink-500 to-indigo-400 bg-clip-text text-transparent drop-shadow-sm">
+            🎯 Lug'at Topshiruvchi Barabani
+        </h1>
+        <p class="text-gray-400 text-sm md:text-base mt-2 font-medium">
+            Ismlarni kiriting va tugmani bosing, baraban keyingi navbatchini tanlab beradi!
+        </p>
+    </header>
+
+    <!-- Main Content Grid -->
+    <main class="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-8 items-center z-10 my-auto">
+        
+        <!-- Left Side: Wheel Container -->
+        <div class="lg:col-span-7 flex flex-col items-center justify-center relative">
+            
+            <!-- Wheel Outer Canvas Box -->
+            <div class="relative w-full max-w-[420px] sm:max-w-[480px] aspect-square flex items-center justify-center p-2">
+                
+                <!-- Arrow Pointer Top Center -->
+                <div class="absolute -top-3 left-1/2 -translate-x-1/2 z-30 filter drop-shadow-[0_4px_10px_rgba(236,72,153,0.8)]">
+                    <div class="w-0 h-0 border-l-[18px] border-l-transparent border-r-[18px] border-r-transparent border-t-[36px] border-t-pink-500 transform transition-transform"></div>
+                </div>
+
+                <!-- Glowing Outer Ring -->
+                <div class="absolute inset-0 rounded-full border-4 border-purple-500/30 neon-border pointer-events-none"></div>
+
+                <!-- Canvas Element -->
+                <canvas id="wheelCanvas" class="w-full h-full rounded-full shadow-2xl cursor-pointer"></canvas>
+
+                <!-- Center Spin Button -->
+                <button id="spinBtn" onclick="spinWheel()" class="absolute z-20 w-20 h-20 md:w-24 md:h-24 rounded-full bg-gradient-to-tr from-purple-600 via-pink-600 to-indigo-600 text-white font-extrabold text-sm md:text-base shadow-2xl border-4 border-slate-900 flex flex-col items-center justify-center transform active:scale-95 hover:scale-105 transition-all duration-200 hover:shadow-[0_0_25px_rgba(236,72,153,0.8)] uppercase tracking-wider group">
+                    <i class="fa-solid fa-sync text-lg md:text-xl group-hover:rotate-180 transition-transform duration-500 mb-0.5"></i>
+                    <span>Aylantir</span>
+                </button>
+            </div>
+
+            <!-- Mobile Quick Action indicator -->
+            <p class="text-xs text-gray-400 mt-4 text-center lg:hidden">
+                <i class="fa-solid fa-hand-pointer text-pink-400 mr-1"></i> "Aylantir" tugmasini bosing!
+            </p>
+        </div>
+
+        <!-- Right Side: Names Management Box -->
+        <div class="lg:col-span-5 w-full">
+            <div class="glass-panel p-6 rounded-2xl flex flex-col h-[480px]">
+                
+                <div class="flex items-center justify-between mb-4 border-b border-gray-700 pb-3">
+                    <h2 class="text-xl font-bold text-gray-100 flex items-center gap-2">
+                        <i class="fa-solid fa-users text-purple-400"></i> Ismlar Ro'yxati
+                    </h2>
+                    <span id="nameCountBadge" class="bg-purple-600/30 text-purple-300 text-xs font-semibold px-2.5 py-1 rounded-full border border-purple-500/30">
+                        0 ta ism
+                    </span>
+                </div>
+
+                <!-- Input area form -->
+                <div class="flex gap-2 mb-3">
+                    <input type="text" id="newNameInput" placeholder="Yangi ism kiriting..." 
+                           class="flex-grow bg-slate-800/80 border border-slate-700 text-white text-sm rounded-xl px-4 py-2.5 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all placeholder-gray-500"
+                           onkeypress="handleKeyPress(event)">
+                    <button onclick="addSingleName()" class="bg-purple-600 hover:bg-purple-500 active:bg-purple-700 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-all shadow-lg flex items-center gap-1">
+                        <i class="fa-solid fa-plus"></i> Qo'shish
+                    </button>
+                </div>
+
+                <!-- Textarea Editor & Preview Switcher -->
+                <div class="flex items-center gap-2 mb-2 text-xs">
+                    <button id="tabListBtn" onclick="switchTab('list')" class="px-3 py-1 rounded-lg bg-purple-600 text-white font-medium transition-all">Ro'yxat</button>
+                    <button id="tabTextBtn" onclick="switchTab('text')" class="px-3 py-1 rounded-lg bg-slate-800 text-gray-400 hover:text-white font-medium transition-all">Ko'p ism tahrirlash</button>
+                </div>
+
+                <!-- Mode 1: Individual Name List View -->
+                <div id="listView" class="flex-grow overflow-y-auto pr-1 space-y-2">
+                    <ul id="namesUl" class="space-y-1.5">
+                        <!-- Dynamic items inserted here -->
+                    </ul>
+                </div>
+
+                <!-- Mode 2: Textarea View -->
+                <div id="textView" class="flex-grow hidden">
+                    <textarea id="bulkNamesInput" 
+                              class="w-full h-full bg-slate-900/90 border border-slate-700 text-gray-200 text-sm rounded-xl p-3 focus:outline-none focus:border-purple-500 resize-none font-mono leading-relaxed"
+                              placeholder="Har bir qatorga bittadan ism yozing..."></textarea>
+                </div>
+
+                <!-- Bottom Controls -->
+                <div class="pt-4 border-t border-gray-700/80 flex items-center justify-between gap-3 mt-auto">
+                    <button onclick="resetDefaultNames()" class="text-xs text-gray-400 hover:text-purple-300 flex items-center gap-1 transition-colors">
+                        <i class="fa-solid fa-rotate-left"></i> Boshlang'ich holat
+                    </button>
+                    <button onclick="clearAllNames()" class="text-xs text-red-400 hover:text-red-300 flex items-center gap-1 transition-colors">
+                        <i class="fa-solid fa-trash-can"></i> Hammasini o'chirish
+                    </button>
+                </div>
+
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="mt-8 text-center text-xs text-gray-500">
+        &copy; Lug'at topshiruvchi omad barabani &bull; Fizik aylanish effekti
+    </footer>
+
+    <!-- Result Modal (Popup) -->
+    <div id="resultModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md opacity-0 pointer-events-none transition-all duration-300">
+        <div class="glass-panel w-full max-w-md rounded-3xl p-6 text-center transform scale-90 transition-all duration-300 id-modal-box border border-purple-500/30 shadow-[0_0_50px_rgba(168,85,247,0.3)]">
+            
+            <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-tr from-purple-500 to-pink-500 p-1 flex items-center justify-center shadow-lg shadow-purple-500/40 animate-bounce">
+                <div class="w-full h-full bg-slate-900 rounded-full flex items-center justify-center text-3xl text-yellow-400">
+                    <i class="fa-solid fa-trophy"></i>
+                </div>
+            </div>
+
+            <h3 class="text-gray-400 font-semibold text-sm uppercase tracking-widest mb-1">
+                E'lon qilamiz!
+            </h3>
+            <p class="text-purple-200 text-lg font-medium mb-3">
+                Keyingi lug'at topshiruvchisi:
+            </p>
+
+            <!-- Winner Name Display -->
+            <div class="bg-gradient-to-r from-purple-900/60 via-slate-800 to-pink-900/60 border border-purple-500/40 rounded-2xl p-4 mb-6 shadow-inner">
+                <span id="winnerName" class="text-3xl md:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-pink-400 to-purple-300 break-words">
+                    <!-- Winner Name -->
+                </span>
+            </div>
+
+            <p class="text-xs text-gray-400 mb-6">
+                Ushbu ismni barabandagilar ro'yxatidan chiqarib yuborasizmi yoki qoldirasizmi?
+            </p>
+
+            <!-- Action Buttons -->
+            <div class="grid grid-cols-2 gap-3">
+                <button onclick="keepWinner()" class="w-full py-3 px-4 bg-slate-800 hover:bg-slate-700 active:bg-slate-900 text-gray-200 text-sm font-semibold rounded-xl border border-slate-600 transition-all shadow-md flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-xmark text-gray-400"></i> Bekor qilish
+                </button>
+                <button onclick="removeWinner()" class="w-full py-3 px-4 bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-500 hover:to-pink-500 active:from-red-700 text-white text-sm font-bold rounded-xl transition-all shadow-lg shadow-red-600/30 flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-user-minus"></i> Chiqarib tashlash
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // Initial Names List as requested by user
+        let names = ["Akmal", "Ilhom", "Yusuf", "Jasur", "Sardor", "Nodir", "Doston", "Javohir"];
+        let currentWinner = "";
+        let isSpinning = false;
+
+        // Physics Wheel State Variables
+        let startAngle = 0;
+        let spinTimeout = null;
+        let spinAngleStart = 10;
+        let spinTime = 0;
+        let spinTimeTotal = 0;
+        let ctx = null;
+
+        // Sound Synthesis (Web Audio API for realistic click & fanfare)
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        let audioCtx = null;
+
+        function playTickSound() {
+            try {
+                if (!audioCtx) audioCtx = new AudioCtx();
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.05);
+                
+                gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.05);
+                
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.05);
+            } catch(e) {}
+        }
+
+        function playWinSound() {
+            try {
+                if (!audioCtx) audioCtx = new AudioCtx();
+                const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+                notes.forEach((freq, index) => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.value = freq;
+                    gain.gain.setValueAtTime(0.2, audioCtx.currentTime + index * 0.1);
+                    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + index * 0.1 + 0.3);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(audioCtx.currentTime + index * 0.1);
+                    osc.stop(audioCtx.currentTime + index * 0.1 + 0.3);
+                });
+            } catch(e) {}
+        }
+
+        // Vibrant Color Palette Generator
+        const colorPalette = [
+            "#8b5cf6", "#ec4899", "#3b82f6", "#10b981", 
+            "#f59e0b", "#ef4444", "#06b6d4", "#6366f1",
+            "#14b8a6", "#f97316", "#a855f7", "#84cc16"
+        ];
+
+        function getColor(index, total) {
+            return colorPalette[index % colorPalette.length];
+        }
+
+        function initCanvas() {
+            const canvas = document.getElementById("wheelCanvas");
+            // Set canvas size accounting for high DPI screens
+            const dpr = window.devicePixelRatio || 1;
+            const size = canvas.parentElement.clientWidth;
+            canvas.width = size * dpr;
+            canvas.height = size * dpr;
+            
+            ctx = canvas.getContext("2d");
+            ctx.scale(dpr, dpr);
+            drawWheel();
+        }
+
+        function drawWheel() {
+            const canvas = document.getElementById("wheelCanvas");
+            if (!ctx) return;
+            
+            const width = canvas.parentElement.clientWidth;
+            const outsideRadius = width / 2 - 10;
+            const textRadius = outsideRadius * 0.68;
+            const insideRadius = outsideRadius * 0.22;
+
+            ctx.clearRect(0, 0, width, width);
+
+            const numOptions = names.length;
+            if (numOptions === 0) {
+                // Empty state drawing
+                ctx.save();
+                ctx.beginPath();
+                ctx.arc(width/2, width/2, outsideRadius, 0, Math.PI * 2);
+                ctx.fillStyle = "#1e293b";
+                ctx.fill();
+                ctx.strokeStyle = "#475569";
+                ctx.lineWidth = 4;
+                ctx.stroke();
+                ctx.fillStyle = "#94a3b8";
+                ctx.font = "bold 16px Inter";
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                ctx.fillText("Ismlar yo'q!", width/2, width/2);
+                ctx.restore();
+                return;
+            }
+
+            const arc = Math.PI * 2 / numOptions;
+
+            ctx.strokeStyle = "#0f172a";
+            ctx.lineWidth = 3;
+
+            for (let i = 0; i < numOptions; i++) {
+                const angle = startAngle + i * arc;
+                ctx.fillStyle = getColor(i, numOptions);
+
+                // Draw Segment Slice
+                ctx.beginPath();
+                ctx.arc(width / 2, width / 2, outsideRadius, angle, angle + arc, false);
+                ctx.arc(width / 2, width / 2, insideRadius, angle + arc, angle, true);
+                ctx.stroke();
+                ctx.fill();
+
+                // Draw Text inside slice
+                ctx.save();
+                ctx.fillStyle = "#ffffff";
+                ctx.shadowColor = "rgba(0,0,0,0.5)";
+                ctx.shadowBlur = 4;
+
+                // Font size scales with number of items
+                let fontSize = Math.max(11, Math.min(18, Math.floor(220 / numOptions)));
+                ctx.font = `bold ${fontSize}px Inter`;
+
+                const textAngle = angle + arc / 2;
+                ctx.translate(
+                    width / 2 + Math.cos(textAngle) * textRadius,
+                    width / 2 + Math.sin(textAngle) * textRadius
+                );
+                
+                // Rotate text towards center
+                ctx.rotate(textAngle + Math.PI / 2 + Math.PI);
+
+                let text = names[i];
+                if (text.length > 12) text = text.substring(0, 10) + "..";
+                
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                ctx.fillText(text, 0, 0);
+                ctx.restore();
+            }
+
+            // Draw Inner Circle Border Accent
+            ctx.beginPath();
+            ctx.arc(width / 2, width / 2, insideRadius, 0, Math.PI * 2);
+            ctx.fillStyle = "#0f172a";
+            ctx.fill();
+            ctx.strokeStyle = "#a855f7";
+            ctx.lineWidth = 3;
+            ctx.stroke();
+        }
+
+        let lastSegmentIndex = -1;
+
+        function spinWheel() {
+            if (isSpinning) return;
+            if (names.length === 0) {
+                alert("Iltimos, avval barabanga kamida bitta ism kiriting!");
+                return;
+            }
+
+            isSpinning = true;
+            document.getElementById("spinBtn").disabled = true;
+
+            // Randomize spin initial velocity and total time
+            spinAngleStart = Math.random() * 20 + 25; // Speed
+            spinTime = 0;
+            spinTimeTotal = Math.random() * 3000 + 4000; // 4 to 7 seconds duration
+            lastSegmentIndex = -1;
+
+            rotateWheel();
+        }
+
+        function rotateWheel() {
+            spinTime += 16; // approx 60 FPS frame time
+            
+            if (spinTime >= spinTimeTotal) {
+                stopRotateWheel();
+                return;
+            }
+
+            // Ease Out Cubic physics calculation for natural deceleration
+            const progress = spinTime / spinTimeTotal;
+            const easeOut = 1 - Math.pow(1 - progress, 3);
+            const currentAngleChange = spinAngleStart * (1 - easeOut);
+            
+            startAngle += (currentAngleChange * Math.PI / 180);
+            drawWheel();
+
+            // Detect pointer ticks for audio feedback
+            const numOptions = names.length;
+            const arc = Math.PI * 2 / numOptions;
+            // Pointer is at Top Center (-90 deg or 3*PI/2)
+            const pointerAngle = (Math.PI * 3 / 2 - startAngle) % (Math.PI * 2);
+            const positivePointerAngle = pointerAngle < 0 ? pointerAngle + Math.PI * 2 : pointerAngle;
+            const currentSegment = Math.floor(positivePointerAngle / arc);
+
+            if (currentSegment !== lastSegmentIndex) {
+                playTickSound();
+                lastSegmentIndex = currentSegment;
+            }
+
+            spinTimeout = requestAnimationFrame(rotateWheel);
+        }
+
+        function stopRotateWheel() {
+            cancelAnimationFrame(spinTimeout);
+            isSpinning = false;
+            document.getElementById("spinBtn").disabled = false;
+
+            const numOptions = names.length;
+            const arc = Math.PI * 2 / numOptions;
+            
+            // Pointer position at top (270 degrees / 3*PI/2)
+            const pointerAngle = (Math.PI * 3 / 2 - startAngle) % (Math.PI * 2);
+            const positivePointerAngle = pointerAngle < 0 ? pointerAngle + Math.PI * 2 : pointerAngle;
+            const index = Math.floor(positivePointerAngle / arc);
+
+            currentWinner = names[index];
+            showResultModal(currentWinner);
+        }
+
+        function showResultModal(winner) {
+            playWinSound();
+            document.getElementById("winnerName").innerText = winner;
+            
+            const modal = document.getElementById("resultModal");
+            const modalBox = modal.querySelector('.id-modal-box');
+            
+            modal.classList.remove("opacity-0", "pointer-events-none");
+            modalBox.classList.remove("scale-90");
+            modalBox.classList.add("scale-100");
+
+            // Trigger Confetti Celebration
+            if (typeof confetti === 'function') {
+                confetti({
+                    particleCount: 120,
+                    spread: 80,
+                    origin: { y: 0.6 },
+                    colors: ['#a855f7', '#ec4899', '#3b82f6', '#f59e0b', '#10b981']
+                });
+            }
+        }
+
+        function closeModal() {
+            const modal = document.getElementById("resultModal");
+            const modalBox = modal.querySelector('.id-modal-box');
+            
+            modalBox.classList.remove("scale-100");
+            modalBox.classList.add("scale-90");
+            modal.classList.add("opacity-0", "pointer-events-none");
+        }
+
+        function keepWinner() {
+            closeModal();
+        }
+
+        function removeWinner() {
+            if (currentWinner) {
+                const index = names.indexOf(currentWinner);
+                if (index > -1) {
+                    names.splice(index, 1);
+                    updateNamesUI();
+                    drawWheel();
+                }
+            }
+            closeModal();
+        }
+
+        function updateNamesUI() {
+            // Update badge count
+            document.getElementById("nameCountBadge").innerText = `${names.length} ta ism`;
+
+            // Update List View
+            const ul = document.getElementById("namesUl");
+            ul.innerHTML = "";
+
+            names.forEach((name, idx) => {
+                const li = document.createElement("li");
+                li.className = "flex items-center justify-between bg-slate-800/60 border border-slate-700/60 rounded-xl px-3 py-2 text-sm text-gray-200 hover:border-purple-500/40 transition-all";
+                li.innerHTML = `
+                    <span class="flex items-center gap-2 font-medium">
+                        <span class="w-2 h-2 rounded-full" style="background-color: ${getColor(idx, names.length)}"></span>
+                        ${escapeHtml(name)}
+                    </span>
+                    <button onclick="deleteName(${idx})" class="text-gray-500 hover:text-red-400 p-1 transition-colors">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                `;
+                ul.appendChild(li);
+            });
+
+            // Update Textarea View
+            document.getElementById("bulkNamesInput").value = names.join("\n");
+        }
+
+        function addSingleName() {
+            const input = document.getElementById("newNameInput");
+            const val = input.value.trim();
+            if (val) {
+                names.push(val);
+                input.value = "";
+                updateNamesUI();
+                drawWheel();
+            }
+        }
+
+        function handleKeyPress(e) {
+            if (e.key === "Enter") {
+                addSingleName();
+            }
+        }
+
+        function deleteName(index) {
+            names.splice(index, 1);
+            updateNamesUI();
+            drawWheel();
+        }
+
+        function clearAllNames() {
+            if (confirm("Haqiqatan ham barcha ismlarni o'chirmoqchimisiz?")) {
+                names = [];
+                updateNamesUI();
+                drawWheel();
+            }
+        }
+
+        function resetDefaultNames() {
+            names = ["Akmal", "Ilhom", "Yusuf", "Jasur", "Sardor", "Nodir", "Doston", "Javohir"];
+            updateNamesUI();
+            drawWheel();
+        }
+
+        // Tab Switcher Logic
+        function switchTab(tab) {
+            const listView = document.getElementById("listView");
+            const textView = document.getElementById("textView");
+            const tabListBtn = document.getElementById("tabListBtn");
+            const tabTextBtn = document.getElementById("tabTextBtn");
+
+            if (tab === 'list') {
+                // If switching back from text area, parse text area
+                syncFromTextarea();
+                listView.classList.remove("hidden");
+                textView.classList.add("hidden");
+
+                tabListBtn.className = "px-3 py-1 rounded-lg bg-purple-600 text-white font-medium transition-all";
+                tabTextBtn.className = "px-3 py-1 rounded-lg bg-slate-800 text-gray-400 hover:text-white font-medium transition-all";
+            } else {
+                listView.classList.add("hidden");
+                textView.classList.remove("hidden");
+
+                tabTextBtn.className = "px-3 py-1 rounded-lg bg-purple-600 text-white font-medium transition-all";
+                tabListBtn.className = "px-3 py-1 rounded-lg bg-slate-800 text-gray-400 hover:text-white font-medium transition-all";
+            }
+        }
+
+        function syncFromTextarea() {
+            const text = document.getElementById("bulkNamesInput").value;
+            const parsed = text.split("\n").map(n => n.trim()).filter(n => n.length > 0);
+            names = parsed;
+            updateNamesUI();
+            drawWheel();
+        }
+
+        document.getElementById("bulkNamesInput").addEventListener("input", syncFromTextarea);
+
+        function escapeHtml(text) {
+            const div = document.createElement("div");
+            div.innerText = text;
+            return div.innerHTML;
+        }
+
+        window.addEventListener('resize', () => {
+            initCanvas();
+        });
+
+        window.onload = function() {
+            initCanvas();
+            updateNamesUI();
+        };
+    </script>
+</body>
+</html>
