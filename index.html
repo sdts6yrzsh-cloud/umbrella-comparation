@@ -1,635 +1,789 @@
 <!DOCTYPE html>
 <html lang="uz">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Omad Barabani - Lug'at Topshiruvchi</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Canvas Confetti CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-    <!-- Font Awesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Font Inter -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
-    
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background: radial-gradient(circle at center, #1e1b4b 0%, #0f172a 100%);
-            min-height: 100vh;
-            color: #f8fafc;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lug'at Topshiruvchi Barabani</title>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
 
-        /* Glassmorphism card styles */
-        .glass-panel {
-            background: rgba(30, 41, 59, 0.7);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-        }
+    body {
+      background: #090d16;
+      background-image:
+        radial-gradient(at 10% 10%, rgba(139, 92, 246, 0.25) 0px, transparent 50%),
+        radial-gradient(at 90% 90%, rgba(236, 72, 153, 0.2) 0px, transparent 50%),
+        radial-gradient(at 50% 50%, rgba(15, 23, 42, 0.8) 0px, transparent 100%);
+      background-attachment: fixed;
+      color: #f8fafc;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 16px;
+      overflow-x: hidden;
+    }
 
-        /* Neon Glow Effects */
-        .neon-border {
-            box-shadow: 0 0 15px rgba(168, 85, 247, 0.4), inset 0 0 15px rgba(168, 85, 247, 0.2);
-        }
+    header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
 
-        /* Custom Scrollbar for list */
-        textarea::-webkit-scrollbar, ul::-webkit-scrollbar {
-            width: 6px;
-        }
-        textarea::-webkit-scrollbar-thumb, ul::-webkit-scrollbar-thumb {
-            background: rgba(168, 85, 247, 0.5);
-            border-radius: 4px;
-        }
+    header h1 {
+      font-size: 2.2rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #c084fc, #e879f9, #38bdf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 6px;
+      letter-spacing: -0.5px;
+    }
 
-        /* Wheel Pointer Animation */
-        @keyframes pulse-pointer {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.15); }
-        }
-        .animate-pointer {
-            animation: pulse-pointer 1s infinite;
-        }
-    </style>
+    header p {
+      color: #94a3b8;
+      font-size: 0.95rem;
+    }
+
+    .main-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 32px;
+      justify-content: center;
+      align-items: flex-start;
+      max-width: 1300px;
+      width: 100%;
+    }
+
+    /* Glassmorphism umumiy klassi */
+    .glass-card {
+      background: rgba(30, 41, 59, 0.45);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      box-shadow: 0 16px 32px 0 rgba(0, 0, 0, 0.37);
+    }
+
+    /* Baraban Bo'limi */
+    .wheel-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+    }
+
+    .wheel-wrapper {
+      position: relative;
+      width: 500px;
+      height: 500px;
+      margin-bottom: 20px;
+      padding: 10px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.03);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 0 40px rgba(139, 92, 246, 0.15);
+    }
+
+    @media (max-width: 580px) {
+      .wheel-wrapper {
+        width: 320px;
+        height: 320px;
+      }
+    }
+
+    .pointer {
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 18px solid transparent;
+      border-right: 18px solid transparent;
+      border-top: 32px solid #f43f5e;
+      z-index: 10;
+      filter: drop-shadow(0 4px 10px rgba(244, 63, 94, 0.6));
+    }
+
+    canvas {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      will-change: transform;
+    }
+
+    .spin-btn-center {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate3d(-50%, -50%, 0);
+      width: 86px;
+      height: 86px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #ec4899, #8b5cf6);
+      border: 3px solid rgba(255, 255, 255, 0.8);
+      color: white;
+      font-weight: 800;
+      font-size: 1rem;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      box-shadow: 0 0 25px rgba(236, 72, 153, 0.5);
+      transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      user-select: none;
+      z-index: 5;
+    }
+
+    .spin-btn-center:hover {
+      transform: translate3d(-50%, -50%, 0) scale(1.08);
+      box-shadow: 0 0 35px rgba(236, 72, 153, 0.8);
+    }
+
+    .spin-btn-center:active {
+      transform: translate3d(-50%, -50%, 0) scale(0.95);
+    }
+
+    .spin-btn-center:disabled {
+      background: rgba(51, 65, 85, 0.8);
+      border-color: rgba(255, 255, 255, 0.2);
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    /* Yon Panellar */
+    .side-panels {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      width: 380px;
+      max-width: 100%;
+    }
+
+    .card {
+      padding: 20px;
+    }
+
+    .card-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #f1f5f9;
+      margin-bottom: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .badge {
+      background: rgba(56, 189, 248, 0.15);
+      color: #38bdf8;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      font-size: 0.78rem;
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-weight: 600;
+    }
+
+    .input-group {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    input[type="text"] {
+      flex: 1;
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      padding: 10px 14px;
+      color: white;
+      font-size: 0.92rem;
+      outline: none;
+      transition: border-color 0.2s, background 0.2s;
+    }
+
+    input[type="text"]:focus {
+      border-color: #a855f7;
+      background: rgba(15, 23, 42, 0.8);
+    }
+
+    .btn {
+      background: linear-gradient(135deg, #8b5cf6, #6366f1);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 10px 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+
+    .btn:hover {
+      opacity: 0.9;
+    }
+
+    .btn:active {
+      transform: scale(0.97);
+    }
+
+    .name-list {
+      max-height: 160px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding-right: 4px;
+    }
+
+    .name-list::-webkit-scrollbar, .stat-box::-webkit-scrollbar {
+      width: 5px;
+    }
+    .name-list::-webkit-scrollbar-thumb, .stat-box::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 4px;
+    }
+
+    .name-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(15, 23, 42, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 0.88rem;
+    }
+
+    .delete-btn {
+      color: #f43f5e;
+      cursor: pointer;
+      font-weight: bold;
+      padding: 2px 6px;
+      border-radius: 4px;
+      transition: background 0.2s;
+    }
+
+    .delete-btn:hover {
+      background: rgba(244, 63, 94, 0.2);
+    }
+
+    /* Stat panellar */
+    .stats-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .stat-box {
+      background: rgba(15, 23, 42, 0.5);
+      border-radius: 12px;
+      padding: 12px;
+      max-height: 180px;
+      overflow-y: auto;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .stat-box.yodlagan {
+      border-top: 3px solid #22c55e;
+    }
+
+    .stat-box.yodlamagan {
+      border-top: 3px solid #f43f5e;
+    }
+
+    .stat-header {
+      font-size: 0.82rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .stat-box.yodlagan .stat-header { color: #4ade80; }
+    .stat-box.yodlamagan .stat-header { color: #fb7185; }
+
+    .stat-list {
+      list-style: none;
+      font-size: 0.85rem;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .stat-list li {
+      background: rgba(30, 41, 59, 0.6);
+      padding: 5px 8px;
+      border-radius: 6px;
+      word-break: break-all;
+      border: 1px solid rgba(255, 255, 255, 0.03);
+    }
+
+    /* Modal (Glassmorphism Modal) */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(9, 13, 22, 0.75);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .modal {
+      background: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-radius: 24px;
+      padding: 32px 24px;
+      width: 90%;
+      max-width: 420px;
+      text-align: center;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      transform: scale(0.9) translate3d(0, 0, 0);
+      transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .modal-overlay.active .modal {
+      transform: scale(1) translate3d(0, 0, 0);
+    }
+
+    .modal h2 {
+      color: #94a3b8;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      margin-bottom: 6px;
+    }
+
+    .winner-name {
+      font-size: 2.2rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #38bdf8, #818cf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin: 12px 0 24px 0;
+      word-break: break-all;
+    }
+
+    .modal-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .modal-btn {
+      padding: 12px 16px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 0.92rem;
+      transition: transform 0.1s, opacity 0.2s, background 0.2s;
+    }
+
+    .modal-btn:hover {
+      opacity: 0.95;
+    }
+
+    .modal-btn:active {
+      transform: scale(0.98);
+    }
+
+    .btn-yodlagan {
+      background: linear-gradient(135deg, #16a34a, #15803d);
+      color: white;
+      box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);
+    }
+
+    .btn-yodlamagan {
+      background: linear-gradient(135deg, #dc2626, #b91c1c);
+      color: white;
+      box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+    }
+
+    .btn-bekor {
+      background: rgba(51, 65, 85, 0.8);
+      color: #e2e8f0;
+    }
+  </style>
 </head>
-<body class="p-4 md:p-8 flex flex-col justify-between items-center relative overflow-x-hidden">
+<body>
 
-    <!-- Header -->
-    <header class="text-center mb-6 z-10">
-        <h1 class="text-3xl md:text-5xl font-extrabold tracking-tight bg-gradient-to-r from-purple-400 via-pink-500 to-indigo-400 bg-clip-text text-transparent drop-shadow-sm">
-            🎯 Lug'at Topshiruvchi Barabani
-        </h1>
-        <p class="text-gray-400 text-sm md:text-base mt-2 font-medium">
-            Ismlarni kiriting va tugmani bosing, baraban keyingi navbatchini tanlab beradi!
-        </p>
-    </header>
+  <header>
+    <h1>Lug'at Topshiruvchi Barabani</h1>
+    <p>Ismlarni kiriting, barabanni aylantiring va natijani belgilang!</p>
+  </header>
 
-    <!-- Main Content Grid -->
-    <main class="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-8 items-center z-10 my-auto">
-        
-        <!-- Left Side: Wheel Container -->
-        <div class="lg:col-span-7 flex flex-col items-center justify-center relative">
-            
-            <!-- Wheel Outer Canvas Box -->
-            <div class="relative w-full max-w-[420px] sm:max-w-[480px] aspect-square flex items-center justify-center p-2">
-                
-                <!-- Arrow Pointer Top Center -->
-                <div class="absolute -top-3 left-1/2 -translate-x-1/2 z-30 filter drop-shadow-[0_4px_10px_rgba(236,72,153,0.8)]">
-                    <div class="w-0 h-0 border-l-[18px] border-l-transparent border-r-[18px] border-r-transparent border-t-[36px] border-t-pink-500 transform transition-transform"></div>
-                </div>
+  <div class="main-container">
 
-                <!-- Glowing Outer Ring -->
-                <div class="absolute inset-0 rounded-full border-4 border-purple-500/30 neon-border pointer-events-none"></div>
-
-                <!-- Canvas Element -->
-                <canvas id="wheelCanvas" class="w-full h-full rounded-full shadow-2xl cursor-pointer"></canvas>
-
-                <!-- Center Spin Button -->
-                <button id="spinBtn" onclick="spinWheel()" class="absolute z-20 w-20 h-20 md:w-24 md:h-24 rounded-full bg-gradient-to-tr from-purple-600 via-pink-600 to-indigo-600 text-white font-extrabold text-sm md:text-base shadow-2xl border-4 border-slate-900 flex flex-col items-center justify-center transform active:scale-95 hover:scale-105 transition-all duration-200 hover:shadow-[0_0_25px_rgba(236,72,153,0.8)] uppercase tracking-wider group">
-                    <i class="fa-solid fa-sync text-lg md:text-xl group-hover:rotate-180 transition-transform duration-500 mb-0.5"></i>
-                    <span>Aylantir</span>
-                </button>
-            </div>
-
-            <!-- Mobile Quick Action indicator -->
-            <p class="text-xs text-gray-400 mt-4 text-center lg:hidden">
-                <i class="fa-solid fa-hand-pointer text-pink-400 mr-1"></i> "Aylantir" tugmasini bosing!
-            </p>
-        </div>
-
-        <!-- Right Side: Names Management Box -->
-        <div class="lg:col-span-5 w-full">
-            <div class="glass-panel p-6 rounded-2xl flex flex-col h-[480px]">
-                
-                <div class="flex items-center justify-between mb-4 border-b border-gray-700 pb-3">
-                    <h2 class="text-xl font-bold text-gray-100 flex items-center gap-2">
-                        <i class="fa-solid fa-users text-purple-400"></i> Ismlar Ro'yxati
-                    </h2>
-                    <span id="nameCountBadge" class="bg-purple-600/30 text-purple-300 text-xs font-semibold px-2.5 py-1 rounded-full border border-purple-500/30">
-                        0 ta ism
-                    </span>
-                </div>
-
-                <!-- Input area form -->
-                <div class="flex gap-2 mb-3">
-                    <input type="text" id="newNameInput" placeholder="Yangi ism kiriting..." 
-                           class="flex-grow bg-slate-800/80 border border-slate-700 text-white text-sm rounded-xl px-4 py-2.5 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all placeholder-gray-500"
-                           onkeypress="handleKeyPress(event)">
-                    <button onclick="addSingleName()" class="bg-purple-600 hover:bg-purple-500 active:bg-purple-700 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-all shadow-lg flex items-center gap-1">
-                        <i class="fa-solid fa-plus"></i> Qo'shish
-                    </button>
-                </div>
-
-                <!-- Textarea Editor & Preview Switcher -->
-                <div class="flex items-center gap-2 mb-2 text-xs">
-                    <button id="tabListBtn" onclick="switchTab('list')" class="px-3 py-1 rounded-lg bg-purple-600 text-white font-medium transition-all">Ro'yxat</button>
-                    <button id="tabTextBtn" onclick="switchTab('text')" class="px-3 py-1 rounded-lg bg-slate-800 text-gray-400 hover:text-white font-medium transition-all">Ko'p ism tahrirlash</button>
-                </div>
-
-                <!-- Mode 1: Individual Name List View -->
-                <div id="listView" class="flex-grow overflow-y-auto pr-1 space-y-2">
-                    <ul id="namesUl" class="space-y-1.5">
-                        <!-- Dynamic items inserted here -->
-                    </ul>
-                </div>
-
-                <!-- Mode 2: Textarea View -->
-                <div id="textView" class="flex-grow hidden">
-                    <textarea id="bulkNamesInput" 
-                              class="w-full h-full bg-slate-900/90 border border-slate-700 text-gray-200 text-sm rounded-xl p-3 focus:outline-none focus:border-purple-500 resize-none font-mono leading-relaxed"
-                              placeholder="Har bir qatorga bittadan ism yozing..."></textarea>
-                </div>
-
-                <!-- Bottom Controls -->
-                <div class="pt-4 border-t border-gray-700/80 flex items-center justify-end gap-3 mt-auto">
-                    <button onclick="clearAllNames()" class="text-xs text-red-400 hover:text-red-300 flex items-center gap-1 transition-colors">
-                        <i class="fa-solid fa-trash-can"></i> Hammasini o'chirish
-                    </button>
-                </div>
-
-            </div>
-        </div>
-
-    </main>
-
-    <!-- Footer -->
-    <footer class="mt-8 text-center text-xs text-gray-500">
-        &copy; Lug'at topshiruvchi omad barabani &bull; Fizik aylanish effekti
-    </footer>
-
-    <!-- Result Modal (Popup) -->
-    <div id="resultModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md opacity-0 pointer-events-none transition-all duration-300">
-        <div class="glass-panel w-full max-w-md rounded-3xl p-6 text-center transform scale-90 transition-all duration-300 id-modal-box border border-purple-500/30 shadow-[0_0_50px_rgba(168,85,247,0.3)]">
-            
-            <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-tr from-purple-500 to-pink-500 p-1 flex items-center justify-center shadow-lg shadow-purple-500/40 animate-bounce">
-                <div class="w-full h-full bg-slate-900 rounded-full flex items-center justify-center text-3xl text-yellow-400">
-                    <i class="fa-solid fa-trophy"></i>
-                </div>
-            </div>
-
-            <h3 class="text-gray-400 font-semibold text-sm uppercase tracking-widest mb-1">
-                E'lon qilamiz!
-            </h3>
-            <p class="text-purple-200 text-lg font-medium mb-3">
-                Keyingi lug'at topshiruvchisi:
-            </p>
-
-            <!-- Winner Name Display -->
-            <div class="bg-gradient-to-r from-purple-900/60 via-slate-800 to-pink-900/60 border border-purple-500/40 rounded-2xl p-4 mb-6 shadow-inner">
-                <span id="winnerName" class="text-3xl md:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-pink-400 to-purple-300 break-words">
-                    <!-- Winner Name -->
-                </span>
-            </div>
-
-            <p class="text-xs text-gray-400 mb-6">
-                Ushbu ismni barabandagilar ro'yxatidan chiqarib yuborasizmi yoki qoldirasizmi?
-            </p>
-
-            <!-- Action Buttons -->
-            <div class="grid grid-cols-2 gap-3">
-                <button onclick="keepWinner()" class="w-full py-3 px-4 bg-slate-800 hover:bg-slate-700 active:bg-slate-900 text-gray-200 text-sm font-semibold rounded-xl border border-slate-600 transition-all shadow-md flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-xmark text-gray-400"></i> Bekor qilish
-                </button>
-                <button onclick="removeWinner()" class="w-full py-3 px-4 bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-500 hover:to-pink-500 active:from-red-700 text-white text-sm font-bold rounded-xl transition-all shadow-lg shadow-red-600/30 flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-user-minus"></i> Chiqarib tashlash
-                </button>
-            </div>
-
-        </div>
+    <!-- Baraban -->
+    <div class="wheel-section">
+      <div class="wheel-wrapper">
+        <div class="pointer"></div>
+        <canvas id="wheelCanvas" width="500" height="500"></canvas>
+        <button id="spinBtn" class="spin-btn-center">AYLANTIR</button>
+      </div>
     </div>
 
-    <script>
-        // Initial Names List - EMPTY as requested
-        let names = [];
-        let currentWinner = "";
-        let isSpinning = false;
+    <!-- Yon Boshqaruv Paneli -->
+    <div class="side-panels">
 
-        // Physics Wheel State Variables
-        let startAngle = 0;
-        let spinTimeout = null;
-        let spinAngleStart = 10;
-        let spinTime = 0;
-        let spinTimeTotal = 0;
-        let targetWinnerIndex = -1;
-        let ctx = null;
+      <!-- Ismlar kiritish -->
+      <div class="card glass-card">
+        <div class="card-title">
+          Ismlar Ro'yxati
+          <span id="nameCount" class="badge">0 ta ism</span>
+        </div>
+        <div class="input-group">
+          <input type="text" id="nameInput" placeholder="Yangi ism kiriting..." onkeydown="if(event.key==='Enter') addName()">
+          <button class="btn" onclick="addName()">+ Qo'shish</button>
+        </div>
+        <div id="nameList" class="name-list"></div>
+      </div>
 
-        // Sound Synthesis (Web Audio API for realistic click & fanfare)
-        const AudioCtx = window.AudioContext || window.webkitAudioContext;
-        let audioCtx = null;
+      <!-- Natijalar / Statistika -->
+      <div class="card glass-card">
+        <div class="card-title">Natijalar</div>
+        <div class="stats-container">
 
-        function playTickSound() {
-            try {
-                if (!audioCtx) audioCtx = new AudioCtx();
-                if (audioCtx.state === 'suspended') audioCtx.resume();
-                
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                
-                osc.type = 'triangle';
-                osc.frequency.setValueAtTime(600, audioCtx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.05);
-                
-                gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
-                gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.05);
-                
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                
-                osc.start();
-                osc.stop(audioCtx.currentTime + 0.05);
-            } catch(e) {}
+          <div class="stat-box yodlagan">
+            <div class="stat-header">
+              <span>Yodlaganlar</span>
+              <span id="countYodlagan">0</span>
+            </div>
+            <ul id="listYodlagan" class="stat-list"></ul>
+          </div>
+
+          <div class="stat-box yodlamagan">
+            <div class="stat-header">
+              <span>Yodlamaganlar</span>
+              <span id="countYodlamagan">0</span>
+            </div>
+            <ul id="listYodlamagan" class="stat-list"></ul>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- Modal Natija Oynasi -->
+  <div id="resultModal" class="modal-overlay">
+    <div class="modal">
+      <h2>Keyingi lug'at topshiruvchisi:</h2>
+      <div id="winnerDisplay" class="winner-name">...</div>
+
+      <div class="modal-actions">
+        <button class="modal-btn btn-yodlagan" onclick="handleResult('yodlagan')">
+          ✅ Yodlagan (Chiqarib tashlash)
+        </button>
+        <button class="modal-btn btn-yodlamagan" onclick="handleResult('yodlamagan')">
+          ❌ Yodlamagan (Chiqarib tashlash)
+        </button>
+        <button class="modal-btn btn-bekor" onclick="handleResult('bekor')">
+          ↩️ Bekor qilish (Barabanda qolsin)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const colors = [
+      '#ef4444', '#f97316', '#f59e0b', '#10b981',
+      '#06b6d4', '#3b82f6', '#8b5cf6', '#ec4899',
+      '#14b8a6', '#6366f1', '#a855f7', '#84cc16'
+    ];
+
+    let names = [];
+    let yodlaganlar = [];
+    let yodlamaganlar = [];
+
+    let currentAngle = 0;
+    let isSpinning = false;
+    let selectedIndex = null;
+
+    const canvas = document.getElementById('wheelCanvas');
+    const ctx = canvas.getContext('2d', { alpha: true });
+
+    // Zaif noutbuklar uchun Offscreen Off-render Cache
+    const offCanvas = document.createElement('canvas');
+    offCanvas.width = 500;
+    offCanvas.height = 500;
+    const offCtx = offCanvas.getContext('2d');
+
+    const spinBtn = document.getElementById('spinBtn');
+    const nameInput = document.getElementById('nameInput');
+    const nameListEl = document.getElementById('nameList');
+    const nameCountEl = document.getElementById('nameCount');
+    const resultModal = document.getElementById('resultModal');
+    const winnerDisplay = document.getElementById('winnerDisplay');
+
+    // Web Audio API (Lazy / Cached)
+    let audioCtx = null;
+    function playClickSound() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(380, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(120, audioCtx.currentTime + 0.04);
+      gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+      gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.04);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.04);
+    }
+
+    function addName() {
+      const val = nameInput.value.trim();
+      if (val) {
+        names.push(val);
+        nameInput.value = '';
+        updateUI();
+      }
+    }
+
+    function removeName(index) {
+      names.splice(index, 1);
+      updateUI();
+    }
+
+    function updateUI() {
+      nameCountEl.textContent = `${names.length} ta ism`;
+      nameListEl.innerHTML = '';
+
+      names.forEach((name, idx) => {
+        const item = document.createElement('div');
+        item.className = 'name-item';
+        item.innerHTML = `
+          <span>${name}</span>
+          <span class="delete-btn" onclick="removeName(${idx})">&times;</span>
+        `;
+        nameListEl.appendChild(item);
+      });
+
+      renderWheelToCache();
+      drawWheelFromCache();
+    }
+
+    // Barabanni Offscreen canvas'ga bir marta chizib keshlab qo'yish
+    function renderWheelToCache() {
+      const numSegments = names.length;
+      const radius = offCanvas.width / 2;
+      offCtx.clearRect(0, 0, offCanvas.width, offCanvas.height);
+
+      if (numSegments === 0) {
+        offCtx.save();
+        offCtx.beginPath();
+        offCtx.arc(radius, radius, radius - 10, 0, 2 * Math.PI);
+        offCtx.fillStyle = 'rgba(15, 23, 42, 0.8)';
+        offCtx.fill();
+        offCtx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+        offCtx.lineWidth = 3;
+        offCtx.stroke();
+
+        offCtx.fillStyle = '#64748b';
+        offCtx.font = '600 16px Inter, sans-serif';
+        offCtx.textAlign = 'center';
+        offCtx.textBaseline = 'middle';
+        offCtx.fillText("Ismlar kiritilmagan", radius, radius);
+        offCtx.restore();
+        return;
+      }
+
+      const anglePerSegment = (2 * Math.PI) / numSegments;
+
+      for (let i = 0; i < numSegments; i++) {
+        const angle = i * anglePerSegment;
+
+        offCtx.beginPath();
+        offCtx.moveTo(radius, radius);
+        offCtx.arc(radius, radius, radius - 5, angle, angle + anglePerSegment);
+        offCtx.fillStyle = colors[i % colors.length];
+        offCtx.fill();
+        offCtx.strokeStyle = '#090d16';
+        offCtx.lineWidth = 3;
+        offCtx.stroke();
+
+        // Matn chizish
+        offCtx.save();
+        offCtx.translate(radius, radius);
+        offCtx.rotate(angle + anglePerSegment / 2);
+        offCtx.textAlign = 'right';
+        offCtx.fillStyle = '#ffffff';
+        offCtx.font = '700 15px Inter, sans-serif';
+        offCtx.shadowColor = 'rgba(0,0,0,0.5)';
+        offCtx.shadowBlur = 4;
+
+        let text = names[i];
+        if (text.length > 13) text = text.substring(0, 11) + '...';
+
+        offCtx.fillText(text, radius - 28, 5);
+        offCtx.restore();
+      }
+    }
+
+    // Animatsiya paytida faqat rasmni burchakka ko'ra aylantirish (Protsessorga yengil)
+    function drawWheelFromCache() {
+      const radius = canvas.width / 2;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      ctx.save();
+      ctx.translate(radius, radius);
+      ctx.rotate(currentAngle);
+      ctx.drawImage(offCanvas, -radius, -radius);
+      ctx.restore();
+    }
+
+    spinBtn.addEventListener('click', spinWheel);
+
+    function spinWheel() {
+      if (isSpinning || names.length === 0) return;
+      isSpinning = true;
+      spinBtn.disabled = true;
+
+      // Akmal tekshiruvi (Case-insensitive)
+      const nonAkmalIndices = [];
+      names.forEach((n, idx) => {
+        if (n.trim().toLowerCase() !== 'akmal') {
+          nonAkmalIndices.push(idx);
+        }
+      });
+
+      // Agar boshqa ismlar bo'lsa, Akmal tanlanmaydi
+      if (nonAkmalIndices.length > 0) {
+        const randIdx = Math.floor(Math.random() * nonAkmalIndices.length);
+        selectedIndex = nonAkmalIndices[randIdx];
+      } else {
+        selectedIndex = Math.floor(Math.random() * names.length);
+      }
+
+      const numSegments = names.length;
+      const anglePerSegment = (2 * Math.PI) / numSegments;
+
+      const targetSegmentAngle = 1.5 * Math.PI - (selectedIndex + 0.5) * anglePerSegment;
+      const fullRotations = 5 + Math.floor(Math.random() * 3);
+      const finalAngle = fullRotations * 2 * Math.PI + targetSegmentAngle;
+
+      const startAngle = currentAngle % (2 * Math.PI);
+      const totalRotation = finalAngle - startAngle;
+
+      const duration = 4800;
+      const startTime = performance.now();
+      let lastSoundSegment = -1;
+
+      function animate(now) {
+        const elapsed = now - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+
+        // Silliq sekinlashish formulasi (Ease Out Quart)
+        const easeOut = 1 - Math.pow(1 - progress, 4);
+
+        currentAngle = startAngle + totalRotation * easeOut;
+        drawWheelFromCache();
+
+        // Ovoz berish
+        const currentSegment = Math.floor((((1.5 * Math.PI - currentAngle) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI)) / anglePerSegment);
+        if (currentSegment !== lastSoundSegment) {
+          playClickSound();
+          lastSoundSegment = currentSegment;
         }
 
-        function playWinSound() {
-            try {
-                if (!audioCtx) audioCtx = new AudioCtx();
-                const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
-                notes.forEach((freq, index) => {
-                    const osc = audioCtx.createOscillator();
-                    const gain = audioCtx.createGain();
-                    osc.type = 'sine';
-                    osc.frequency.value = freq;
-                    gain.gain.setValueAtTime(0.2, audioCtx.currentTime + index * 0.1);
-                    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + index * 0.1 + 0.3);
-                    osc.connect(gain);
-                    gain.connect(audioCtx.destination);
-                    osc.start(audioCtx.currentTime + index * 0.1);
-                    osc.stop(audioCtx.currentTime + index * 0.1 + 0.3);
-                });
-            } catch(e) {}
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        } else {
+          isSpinning = false;
+          spinBtn.disabled = false;
+          showResult(names[selectedIndex]);
         }
+      }
 
-        // Vibrant Color Palette Generator
-        const colorPalette = [
-            "#8b5cf6", "#ec4899", "#3b82f6", "#10b981", 
-            "#f59e0b", "#ef4444", "#06b6d4", "#6366f1",
-            "#14b8a6", "#f97316", "#a855f7", "#84cc16"
-        ];
+      requestAnimationFrame(animate);
+    }
 
-        function getColor(index, total) {
-            return colorPalette[index % colorPalette.length];
-        }
+    function showResult(winner) {
+      winnerDisplay.textContent = winner;
+      resultModal.classList.add('active');
 
-        function initCanvas() {
-            const canvas = document.getElementById("wheelCanvas");
-            const dpr = window.devicePixelRatio || 1;
-            const size = canvas.parentElement.clientWidth;
-            canvas.width = size * dpr;
-            canvas.height = size * dpr;
-            
-            ctx = canvas.getContext("2d");
-            ctx.scale(dpr, dpr);
-            drawWheel();
-        }
+      confetti({
+        particleCount: 80,
+        spread: 60,
+        origin: { y: 0.6 },
+        disableForReducedMotion: true
+      });
+    }
 
-        function drawWheel() {
-            const canvas = document.getElementById("wheelCanvas");
-            if (!ctx) return;
-            
-            const width = canvas.parentElement.clientWidth;
-            const outsideRadius = width / 2 - 10;
-            const textRadius = outsideRadius * 0.68;
-            const insideRadius = outsideRadius * 0.22;
+    function handleResult(action) {
+      if (selectedIndex === null) return;
+      const winnerName = names[selectedIndex];
 
-            ctx.clearRect(0, 0, width, width);
+      if (action === 'yodlagan') {
+        yodlaganlar.push(winnerName);
+        names.splice(selectedIndex, 1);
+      } else if (action === 'yodlamagan') {
+        yodlamaganlar.push(winnerName);
+        names.splice(selectedIndex, 1);
+      }
 
-            const numOptions = names.length;
-            if (numOptions === 0) {
-                // Empty state drawing
-                ctx.save();
-                ctx.beginPath();
-                ctx.arc(width/2, width/2, outsideRadius, 0, Math.PI * 2);
-                ctx.fillStyle = "#1e293b";
-                ctx.fill();
-                ctx.strokeStyle = "#475569";
-                ctx.lineWidth = 4;
-                ctx.stroke();
-                ctx.fillStyle = "#94a3b8";
-                ctx.font = "bold 16px Inter";
-                ctx.textAlign = "center";
-                ctx.textBaseline = "middle";
-                ctx.fillText("Ismlar yo'q! Ism kiriting.", width/2, width/2);
-                ctx.restore();
-                return;
-            }
+      resultModal.classList.remove('active');
+      selectedIndex = null;
 
-            const arc = Math.PI * 2 / numOptions;
+      updateStatsUI();
+      updateUI();
+    }
 
-            ctx.strokeStyle = "#0f172a";
-            ctx.lineWidth = 3;
+    function updateStatsUI() {
+      document.getElementById('countYodlagan').textContent = yodlaganlar.length;
+      const listYod = document.getElementById('listYodlagan');
+      listYod.innerHTML = '';
+      yodlaganlar.forEach(n => {
+        const li = document.createElement('li');
+        li.textContent = n;
+        listYod.appendChild(li);
+      });
 
-            for (let i = 0; i < numOptions; i++) {
-                const angle = startAngle + i * arc;
-                ctx.fillStyle = getColor(i, numOptions);
+      document.getElementById('countYodlamagan').textContent = yodlamaganlar.length;
+      const listYodla = document.getElementById('listYodlamagan');
+      listYodla.innerHTML = '';
+      yodlamaganlar.forEach(n => {
+        const li = document.createElement('li');
+        li.textContent = n;
+        listYodla.appendChild(li);
+      });
+    }
 
-                // Draw Segment Slice
-                ctx.beginPath();
-                ctx.arc(width / 2, width / 2, outsideRadius, angle, angle + arc, false);
-                ctx.arc(width / 2, width / 2, insideRadius, angle + arc, angle, true);
-                ctx.stroke();
-                ctx.fill();
-
-                // Draw Text inside slice
-                ctx.save();
-                ctx.fillStyle = "#ffffff";
-                ctx.shadowColor = "rgba(0,0,0,0.5)";
-                ctx.shadowBlur = 4;
-
-                let fontSize = Math.max(11, Math.min(18, Math.floor(220 / numOptions)));
-                ctx.font = `bold ${fontSize}px Inter`;
-
-                const textAngle = angle + arc / 2;
-                ctx.translate(
-                    width / 2 + Math.cos(textAngle) * textRadius,
-                    width / 2 + Math.sin(textAngle) * textRadius
-                );
-                
-                ctx.rotate(textAngle + Math.PI / 2 + Math.PI);
-
-                let text = names[i];
-                if (text.length > 12) text = text.substring(0, 10) + "..";
-                
-                ctx.textAlign = "center";
-                ctx.textBaseline = "middle";
-                ctx.fillText(text, 0, 0);
-                ctx.restore();
-            }
-
-            // Draw Inner Circle Border Accent
-            ctx.beginPath();
-            ctx.arc(width / 2, width / 2, insideRadius, 0, Math.PI * 2);
-            ctx.fillStyle = "#0f172a";
-            ctx.fill();
-            ctx.strokeStyle = "#a855f7";
-            ctx.lineWidth = 3;
-            ctx.stroke();
-        }
-
-        let lastSegmentIndex = -1;
-
-        // Checks if a name string matches "akmal" in any case combination
-        function isAkmalName(nameStr) {
-            return nameStr.trim().toLowerCase() === "akmal";
-        }
-
-        function spinWheel() {
-            if (isSpinning) return;
-            if (names.length === 0) {
-                alert("Iltimos, avval barabanga kamida bitta ism kiriting!");
-                return;
-            }
-
-            isSpinning = true;
-            document.getElementById("spinBtn").disabled = true;
-
-            // Pick candidate winner index with "Akmal" rigging rule
-            const nonAkmalIndices = [];
-            const akmalIndices = [];
-
-            names.forEach((name, idx) => {
-                if (isAkmalName(name)) {
-                    akmalIndices.push(idx);
-                } else {
-                    nonAkmalIndices.push(idx);
-                }
-            });
-
-            // Rigging Rule: If non-Akmal names exist, pick ONLY from non-Akmal names.
-            // Akmal will only be chosen if he is the LAST/ONLY remaining name in the list.
-            if (nonAkmalIndices.length > 0) {
-                const randomPick = Math.floor(Math.random() * nonAkmalIndices.length);
-                targetWinnerIndex = nonAkmalIndices[randomPick];
-            } else {
-                // Only Akmal(s) left
-                targetWinnerIndex = Math.floor(Math.random() * akmalIndices.length);
-            }
-
-            // Calculate precise target final angle for physics deceleration
-            const numOptions = names.length;
-            const arc = Math.PI * 2 / numOptions;
-
-            // Pointer position at top (270 degrees or 3*PI/2)
-            // Winner index occupies range [targetWinnerIndex * arc, (targetWinnerIndex + 1) * arc]
-            // We aim for the middle of that segment
-            const targetSegmentCenterAngle = targetWinnerIndex * arc + (arc / 2);
-            
-            // Formula to land top pointer at segment center:
-            // pointerAngle = 3*PI/2 - finalStartAngle = targetSegmentCenterAngle (mod 2PI)
-            const desiredFinalStartAngle = (3 * Math.PI / 2) - targetSegmentCenterAngle;
-
-            // Ensure multiple full revolutions (5 to 8 full spins)
-            const fullSpins = Math.floor(Math.random() * 4 + 5) * (Math.PI * 2);
-            
-            // Normalize startAngle to range [0, 2PI]
-            const currentNormalized = ((startAngle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
-            let targetTotalRotation = desiredFinalStartAngle - currentNormalized;
-            while (targetTotalRotation < 0) {
-                targetTotalRotation += Math.PI * 2;
-            }
-            targetTotalRotation += fullSpins;
-
-            spinTime = 0;
-            spinTimeTotal = Math.random() * 2000 + 4000; // 4 to 6 seconds duration
-            lastSegmentIndex = -1;
-
-            animateSpin(startAngle, targetTotalRotation);
-        }
-
-        function animateSpin(initialStartAngle, totalRotationNeeded) {
-            spinTime += 16;
-            
-            if (spinTime >= spinTimeTotal) {
-                startAngle = initialStartAngle + totalRotationNeeded;
-                drawWheel();
-                stopRotateWheel();
-                return;
-            }
-
-            // Ease Out Cubic physics calculation
-            const progress = spinTime / spinTimeTotal;
-            const easeOut = 1 - Math.pow(1 - progress, 3);
-            
-            startAngle = initialStartAngle + (totalRotationNeeded * easeOut);
-            drawWheel();
-
-            // Sound ticks
-            const numOptions = names.length;
-            const arc = Math.PI * 2 / numOptions;
-            const pointerAngle = (Math.PI * 3 / 2 - startAngle) % (Math.PI * 2);
-            const positivePointerAngle = pointerAngle < 0 ? pointerAngle + Math.PI * 2 : pointerAngle;
-            const currentSegment = Math.floor(positivePointerAngle / arc);
-
-            if (currentSegment !== lastSegmentIndex) {
-                playTickSound();
-                lastSegmentIndex = currentSegment;
-            }
-
-            spinTimeout = requestAnimationFrame(() => animateSpin(initialStartAngle, totalRotationNeeded));
-        }
-
-        function stopRotateWheel() {
-            cancelAnimationFrame(spinTimeout);
-            isSpinning = false;
-            document.getElementById("spinBtn").disabled = false;
-
-            currentWinner = names[targetWinnerIndex];
-            showResultModal(currentWinner);
-        }
-
-        function showResultModal(winner) {
-            playWinSound();
-            document.getElementById("winnerName").innerText = winner;
-            
-            const modal = document.getElementById("resultModal");
-            const modalBox = modal.querySelector('.id-modal-box');
-            
-            modal.classList.remove("opacity-0", "pointer-events-none");
-            modalBox.classList.remove("scale-90");
-            modalBox.classList.add("scale-100");
-
-            // Trigger Confetti Celebration
-            if (typeof confetti === 'function') {
-                confetti({
-                    particleCount: 120,
-                    spread: 80,
-                    origin: { y: 0.6 },
-                    colors: ['#a855f7', '#ec4899', '#3b82f6', '#f59e0b', '#10b981']
-                });
-            }
-        }
-
-        function closeModal() {
-            const modal = document.getElementById("resultModal");
-            const modalBox = modal.querySelector('.id-modal-box');
-            
-            modalBox.classList.remove("scale-100");
-            modalBox.classList.add("scale-90");
-            modal.classList.add("opacity-0", "pointer-events-none");
-        }
-
-        function keepWinner() {
-            closeModal();
-        }
-
-        function removeWinner() {
-            if (currentWinner && targetWinnerIndex > -1) {
-                names.splice(targetWinnerIndex, 1);
-                updateNamesUI();
-                drawWheel();
-            }
-            closeModal();
-        }
-
-        function updateNamesUI() {
-            // Update badge count
-            document.getElementById("nameCountBadge").innerText = `${names.length} ta ism`;
-
-            // Update List View
-            const ul = document.getElementById("namesUl");
-            ul.innerHTML = "";
-
-            if (names.length === 0) {
-                ul.innerHTML = `<li class="text-xs text-gray-500 text-center py-4">Ro'yxat bo'sh. Yuqoridan ismlar qo'shing.</li>`;
-            } else {
-                names.forEach((name, idx) => {
-                    const li = document.createElement("li");
-                    li.className = "flex items-center justify-between bg-slate-800/60 border border-slate-700/60 rounded-xl px-3 py-2 text-sm text-gray-200 hover:border-purple-500/40 transition-all";
-                    li.innerHTML = `
-                        <span class="flex items-center gap-2 font-medium">
-                            <span class="w-2 h-2 rounded-full" style="background-color: ${getColor(idx, names.length)}"></span>
-                            ${escapeHtml(name)}
-                        </span>
-                        <button onclick="deleteName(${idx})" class="text-gray-500 hover:text-red-400 p-1 transition-colors">
-                            <i class="fa-solid fa-xmark"></i>
-                        </button>
-                    `;
-                    ul.appendChild(li);
-                });
-            }
-
-            // Update Textarea View
-            document.getElementById("bulkNamesInput").value = names.join("\n");
-        }
-
-        function addSingleName() {
-            const input = document.getElementById("newNameInput");
-            const val = input.value.trim();
-            if (val) {
-                names.push(val);
-                input.value = "";
-                updateNamesUI();
-                drawWheel();
-            }
-        }
-
-        function handleKeyPress(e) {
-            if (e.key === "Enter") {
-                addSingleName();
-            }
-        }
-
-        function deleteName(index) {
-            names.splice(index, 1);
-            updateNamesUI();
-            drawWheel();
-        }
-
-        function clearAllNames() {
-            if (names.length === 0) return;
-            if (confirm("Haqiqatan ham barcha ismlarni o'chirmoqchimisiz?")) {
-                names = [];
-                updateNamesUI();
-                drawWheel();
-            }
-        }
-
-        function switchTab(tab) {
-            const listView = document.getElementById("listView");
-            const textView = document.getElementById("textView");
-            const tabListBtn = document.getElementById("tabListBtn");
-            const tabTextBtn = document.getElementById("tabTextBtn");
-
-            if (tab === 'list') {
-                syncFromTextarea();
-                listView.classList.remove("hidden");
-                textView.classList.add("hidden");
-
-                tabListBtn.className = "px-3 py-1 rounded-lg bg-purple-600 text-white font-medium transition-all";
-                tabTextBtn.className = "px-3 py-1 rounded-lg bg-slate-800 text-gray-400 hover:text-white font-medium transition-all";
-            } else {
-                listView.classList.add("hidden");
-                textView.classList.remove("hidden");
-
-                tabTextBtn.className = "px-3 py-1 rounded-lg bg-purple-600 text-white font-medium transition-all";
-                tabListBtn.className = "px-3 py-1 rounded-lg bg-slate-800 text-gray-400 hover:text-white font-medium transition-all";
-            }
-        }
-
-        function syncFromTextarea() {
-            const text = document.getElementById("bulkNamesInput").value;
-            const parsed = text.split("\n").map(n => n.trim()).filter(n => n.length > 0);
-            names = parsed;
-            updateNamesUI();
-            drawWheel();
-        }
-
-        document.getElementById("bulkNamesInput").addEventListener("input", syncFromTextarea);
-
-        function escapeHtml(text) {
-            const div = document.createElement("div");
-            div.innerText = text;
-            return div.innerHTML;
-        }
-
-        window.addEventListener('resize', () => {
-            initCanvas();
-        });
-
-        window.onload = function() {
-            initCanvas();
-            updateNamesUI();
-        };
-    </script>
+    updateUI();
+  </script>
 </body>
 </html>
