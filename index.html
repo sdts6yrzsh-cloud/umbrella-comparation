@@ -142,10 +142,7 @@
                 </div>
 
                 <!-- Bottom Controls -->
-                <div class="pt-4 border-t border-gray-700/80 flex items-center justify-between gap-3 mt-auto">
-                    <button onclick="resetDefaultNames()" class="text-xs text-gray-400 hover:text-purple-300 flex items-center gap-1 transition-colors">
-                        <i class="fa-solid fa-rotate-left"></i> Boshlang'ich holat
-                    </button>
+                <div class="pt-4 border-t border-gray-700/80 flex items-center justify-end gap-3 mt-auto">
                     <button onclick="clearAllNames()" class="text-xs text-red-400 hover:text-red-300 flex items-center gap-1 transition-colors">
                         <i class="fa-solid fa-trash-can"></i> Hammasini o'chirish
                     </button>
@@ -203,8 +200,8 @@
     </div>
 
     <script>
-        // Initial Names List as requested by user
-        let names = ["Akmal", "Ilhom", "Yusuf", "Jasur", "Sardor", "Nodir", "Doston", "Javohir"];
+        // Initial Names List - EMPTY as requested
+        let names = [];
         let currentWinner = "";
         let isSpinning = false;
 
@@ -214,6 +211,7 @@
         let spinAngleStart = 10;
         let spinTime = 0;
         let spinTimeTotal = 0;
+        let targetWinnerIndex = -1;
         let ctx = null;
 
         // Sound Synthesis (Web Audio API for realistic click & fanfare)
@@ -275,7 +273,6 @@
 
         function initCanvas() {
             const canvas = document.getElementById("wheelCanvas");
-            // Set canvas size accounting for high DPI screens
             const dpr = window.devicePixelRatio || 1;
             const size = canvas.parentElement.clientWidth;
             canvas.width = size * dpr;
@@ -312,7 +309,7 @@
                 ctx.font = "bold 16px Inter";
                 ctx.textAlign = "center";
                 ctx.textBaseline = "middle";
-                ctx.fillText("Ismlar yo'q!", width/2, width/2);
+                ctx.fillText("Ismlar yo'q! Ism kiriting.", width/2, width/2);
                 ctx.restore();
                 return;
             }
@@ -339,7 +336,6 @@
                 ctx.shadowColor = "rgba(0,0,0,0.5)";
                 ctx.shadowBlur = 4;
 
-                // Font size scales with number of items
                 let fontSize = Math.max(11, Math.min(18, Math.floor(220 / numOptions)));
                 ctx.font = `bold ${fontSize}px Inter`;
 
@@ -349,7 +345,6 @@
                     width / 2 + Math.sin(textAngle) * textRadius
                 );
                 
-                // Rotate text towards center
                 ctx.rotate(textAngle + Math.PI / 2 + Math.PI);
 
                 let text = names[i];
@@ -373,6 +368,11 @@
 
         let lastSegmentIndex = -1;
 
+        // Checks if a name string matches "akmal" in any case combination
+        function isAkmalName(nameStr) {
+            return nameStr.trim().toLowerCase() === "akmal";
+        }
+
         function spinWheel() {
             if (isSpinning) return;
             if (names.length === 0) {
@@ -383,35 +383,79 @@
             isSpinning = true;
             document.getElementById("spinBtn").disabled = true;
 
-            // Randomize spin initial velocity and total time
-            spinAngleStart = Math.random() * 20 + 25; // Speed
+            // Pick candidate winner index with "Akmal" rigging rule
+            const nonAkmalIndices = [];
+            const akmalIndices = [];
+
+            names.forEach((name, idx) => {
+                if (isAkmalName(name)) {
+                    akmalIndices.push(idx);
+                } else {
+                    nonAkmalIndices.push(idx);
+                }
+            });
+
+            // Rigging Rule: If non-Akmal names exist, pick ONLY from non-Akmal names.
+            // Akmal will only be chosen if he is the LAST/ONLY remaining name in the list.
+            if (nonAkmalIndices.length > 0) {
+                const randomPick = Math.floor(Math.random() * nonAkmalIndices.length);
+                targetWinnerIndex = nonAkmalIndices[randomPick];
+            } else {
+                // Only Akmal(s) left
+                targetWinnerIndex = Math.floor(Math.random() * akmalIndices.length);
+            }
+
+            // Calculate precise target final angle for physics deceleration
+            const numOptions = names.length;
+            const arc = Math.PI * 2 / numOptions;
+
+            // Pointer position at top (270 degrees or 3*PI/2)
+            // Winner index occupies range [targetWinnerIndex * arc, (targetWinnerIndex + 1) * arc]
+            // We aim for the middle of that segment
+            const targetSegmentCenterAngle = targetWinnerIndex * arc + (arc / 2);
+            
+            // Formula to land top pointer at segment center:
+            // pointerAngle = 3*PI/2 - finalStartAngle = targetSegmentCenterAngle (mod 2PI)
+            const desiredFinalStartAngle = (3 * Math.PI / 2) - targetSegmentCenterAngle;
+
+            // Ensure multiple full revolutions (5 to 8 full spins)
+            const fullSpins = Math.floor(Math.random() * 4 + 5) * (Math.PI * 2);
+            
+            // Normalize startAngle to range [0, 2PI]
+            const currentNormalized = ((startAngle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+            let targetTotalRotation = desiredFinalStartAngle - currentNormalized;
+            while (targetTotalRotation < 0) {
+                targetTotalRotation += Math.PI * 2;
+            }
+            targetTotalRotation += fullSpins;
+
             spinTime = 0;
-            spinTimeTotal = Math.random() * 3000 + 4000; // 4 to 7 seconds duration
+            spinTimeTotal = Math.random() * 2000 + 4000; // 4 to 6 seconds duration
             lastSegmentIndex = -1;
 
-            rotateWheel();
+            animateSpin(startAngle, targetTotalRotation);
         }
 
-        function rotateWheel() {
-            spinTime += 16; // approx 60 FPS frame time
+        function animateSpin(initialStartAngle, totalRotationNeeded) {
+            spinTime += 16;
             
             if (spinTime >= spinTimeTotal) {
+                startAngle = initialStartAngle + totalRotationNeeded;
+                drawWheel();
                 stopRotateWheel();
                 return;
             }
 
-            // Ease Out Cubic physics calculation for natural deceleration
+            // Ease Out Cubic physics calculation
             const progress = spinTime / spinTimeTotal;
             const easeOut = 1 - Math.pow(1 - progress, 3);
-            const currentAngleChange = spinAngleStart * (1 - easeOut);
             
-            startAngle += (currentAngleChange * Math.PI / 180);
+            startAngle = initialStartAngle + (totalRotationNeeded * easeOut);
             drawWheel();
 
-            // Detect pointer ticks for audio feedback
+            // Sound ticks
             const numOptions = names.length;
             const arc = Math.PI * 2 / numOptions;
-            // Pointer is at Top Center (-90 deg or 3*PI/2)
             const pointerAngle = (Math.PI * 3 / 2 - startAngle) % (Math.PI * 2);
             const positivePointerAngle = pointerAngle < 0 ? pointerAngle + Math.PI * 2 : pointerAngle;
             const currentSegment = Math.floor(positivePointerAngle / arc);
@@ -421,7 +465,7 @@
                 lastSegmentIndex = currentSegment;
             }
 
-            spinTimeout = requestAnimationFrame(rotateWheel);
+            spinTimeout = requestAnimationFrame(() => animateSpin(initialStartAngle, totalRotationNeeded));
         }
 
         function stopRotateWheel() {
@@ -429,15 +473,7 @@
             isSpinning = false;
             document.getElementById("spinBtn").disabled = false;
 
-            const numOptions = names.length;
-            const arc = Math.PI * 2 / numOptions;
-            
-            // Pointer position at top (270 degrees / 3*PI/2)
-            const pointerAngle = (Math.PI * 3 / 2 - startAngle) % (Math.PI * 2);
-            const positivePointerAngle = pointerAngle < 0 ? pointerAngle + Math.PI * 2 : pointerAngle;
-            const index = Math.floor(positivePointerAngle / arc);
-
-            currentWinner = names[index];
+            currentWinner = names[targetWinnerIndex];
             showResultModal(currentWinner);
         }
 
@@ -477,13 +513,10 @@
         }
 
         function removeWinner() {
-            if (currentWinner) {
-                const index = names.indexOf(currentWinner);
-                if (index > -1) {
-                    names.splice(index, 1);
-                    updateNamesUI();
-                    drawWheel();
-                }
+            if (currentWinner && targetWinnerIndex > -1) {
+                names.splice(targetWinnerIndex, 1);
+                updateNamesUI();
+                drawWheel();
             }
             closeModal();
         }
@@ -496,20 +529,24 @@
             const ul = document.getElementById("namesUl");
             ul.innerHTML = "";
 
-            names.forEach((name, idx) => {
-                const li = document.createElement("li");
-                li.className = "flex items-center justify-between bg-slate-800/60 border border-slate-700/60 rounded-xl px-3 py-2 text-sm text-gray-200 hover:border-purple-500/40 transition-all";
-                li.innerHTML = `
-                    <span class="flex items-center gap-2 font-medium">
-                        <span class="w-2 h-2 rounded-full" style="background-color: ${getColor(idx, names.length)}"></span>
-                        ${escapeHtml(name)}
-                    </span>
-                    <button onclick="deleteName(${idx})" class="text-gray-500 hover:text-red-400 p-1 transition-colors">
-                        <i class="fa-solid fa-xmark"></i>
-                    </button>
-                `;
-                ul.appendChild(li);
-            });
+            if (names.length === 0) {
+                ul.innerHTML = `<li class="text-xs text-gray-500 text-center py-4">Ro'yxat bo'sh. Yuqoridan ismlar qo'shing.</li>`;
+            } else {
+                names.forEach((name, idx) => {
+                    const li = document.createElement("li");
+                    li.className = "flex items-center justify-between bg-slate-800/60 border border-slate-700/60 rounded-xl px-3 py-2 text-sm text-gray-200 hover:border-purple-500/40 transition-all";
+                    li.innerHTML = `
+                        <span class="flex items-center gap-2 font-medium">
+                            <span class="w-2 h-2 rounded-full" style="background-color: ${getColor(idx, names.length)}"></span>
+                            ${escapeHtml(name)}
+                        </span>
+                        <button onclick="deleteName(${idx})" class="text-gray-500 hover:text-red-400 p-1 transition-colors">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    `;
+                    ul.appendChild(li);
+                });
+            }
 
             // Update Textarea View
             document.getElementById("bulkNamesInput").value = names.join("\n");
@@ -539,6 +576,7 @@
         }
 
         function clearAllNames() {
+            if (names.length === 0) return;
             if (confirm("Haqiqatan ham barcha ismlarni o'chirmoqchimisiz?")) {
                 names = [];
                 updateNamesUI();
@@ -546,13 +584,6 @@
             }
         }
 
-        function resetDefaultNames() {
-            names = ["Akmal", "Ilhom", "Yusuf", "Jasur", "Sardor", "Nodir", "Doston", "Javohir"];
-            updateNamesUI();
-            drawWheel();
-        }
-
-        // Tab Switcher Logic
         function switchTab(tab) {
             const listView = document.getElementById("listView");
             const textView = document.getElementById("textView");
@@ -560,7 +591,6 @@
             const tabTextBtn = document.getElementById("tabTextBtn");
 
             if (tab === 'list') {
-                // If switching back from text area, parse text area
                 syncFromTextarea();
                 listView.classList.remove("hidden");
                 textView.classList.add("hidden");
