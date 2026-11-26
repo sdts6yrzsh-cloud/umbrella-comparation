@@ -164,15 +164,6 @@
       box-shadow: none;
     }
 
-    .status-note {
-      margin-top: 6px;
-      min-height: 22px;
-      font-size: 0.9rem;
-      color: #fbbf24;
-      text-align: center;
-      font-weight: 600;
-    }
-
     .side-panels {
       display: flex;
       flex-direction: column;
@@ -476,7 +467,6 @@
         <canvas id="wheelCanvas" width="520" height="520"></canvas>
         <button id="spinBtn" class="spin-btn-center">AYLANTIR</button>
       </div>
-      <div id="statusNote" class="status-note"></div>
     </div>
 
     <div class="side-panels">
@@ -568,7 +558,6 @@
     const nameCountEl = document.getElementById('nameCount');
     const resultModal = document.getElementById('resultModal');
     const winnerDisplay = document.getElementById('winnerDisplay');
-    const statusNoteEl = document.getElementById('statusNote');
 
     let audioCtx = null;
     function playClickSound(speedFactor = 1) {
@@ -595,7 +584,7 @@
       osc.stop(audioCtx.currentTime + 0.05);
     }
 
-    function isProtectedAzam(name) {
+    function isAzam(name) {
       return typeof name === 'string' && name.trim().toLowerCase() === 'azam';
     }
 
@@ -604,14 +593,12 @@
       if (val) {
         names.push(val);
         nameInput.value = '';
-        statusNoteEl.textContent = '';
         updateUI();
       }
     }
 
     function removeName(index) {
       names.splice(index, 1);
-      statusNoteEl.textContent = '';
       updateUI();
     }
 
@@ -705,28 +692,29 @@
 
     function spinWheel() {
       if (isSpinning || names.length === 0) return;
-
-      // Azam bo'lmagan barcha ismlarni ajratib olamiz
-      const eligibleIndices = [];
-      names.forEach((n, idx) => {
-        if (!isProtectedAzam(n)) {
-          eligibleIndices.push(idx);
-        }
-      });
-
-      // Agar barabanda faqat "Azam" qolgan bo'lsa (yoki umuman boshqa ism bo'lmasa),
-      // u oxirgi bo'lib ham TUSHMAYDI!
-      if (eligibleIndices.length === 0) {
-        statusNoteEl.textContent = "Barabanda faqat 'Azam' qoldi — oxirgi bo'lib ham tushmaydi!";
-        return;
-      }
-
-      statusNoteEl.textContent = '';
       isSpinning = true;
       spinBtn.disabled = true;
 
-      const randIdx = Math.floor(Math.random() * eligibleIndices.length);
-      selectedIndex = eligibleIndices[randIdx];
+      // 1. Agar ro'yxatda atigi 2 ta odam qolgan bo'lsa va ulardan biri "Azam",
+      //    ikkinchisi boshqa odam bo'lsa — "Azam" oxirgi (eng so'nggi) bo'lib qolmasligi uchun
+      //    shu safar "Azam" tushadi (oxirgi bo'lib boshqa odam qoladi).
+      // 2. Boshqa barcha holatlarda (3+ odam bo'lganda) hamma, jumladan "Azam" ham
+      //    mutlaqo tasodifiy (har xil) tushadi.
+      const azamIndices = [];
+      const otherIndices = [];
+      names.forEach((n, idx) => {
+        if (isAzam(n)) {
+          azamIndices.push(idx);
+        } else {
+          otherIndices.push(idx);
+        }
+      });
+
+      if (names.length === 2 && azamIndices.length === 1 && otherIndices.length === 1) {
+        selectedIndex = azamIndices[0];
+      } else {
+        selectedIndex = Math.floor(Math.random() * names.length);
+      }
 
       const numSegments = names.length;
       const anglePerSegment = (2 * Math.PI) / numSegments;
