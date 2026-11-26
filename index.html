@@ -65,7 +65,6 @@
       z-index: 2;
     }
 
-    /* Glassmorphism umumiy klassi - Shaffoflik oshirildi */
     .glass-card {
       background: rgba(20, 25, 40, 0.25);
       backdrop-filter: blur(20px);
@@ -75,7 +74,6 @@
       box-shadow: 0 20px 40px 0 rgba(0, 0, 0, 0.4), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
     }
 
-    /* Baraban Bo'limi */
     .wheel-section {
       display: flex;
       flex-direction: column;
@@ -166,7 +164,15 @@
       box-shadow: none;
     }
 
-    /* Yon Panellar */
+    .status-note {
+      margin-top: 6px;
+      min-height: 22px;
+      font-size: 0.9rem;
+      color: #fbbf24;
+      text-align: center;
+      font-weight: 600;
+    }
+
     .side-panels {
       display: flex;
       flex-direction: column;
@@ -273,7 +279,7 @@
       font-size: 0.9rem;
       transition: background 0.2s;
     }
-    
+
     .name-item:hover {
       background: rgba(15, 23, 42, 0.6);
     }
@@ -293,7 +299,6 @@
       color: #fff;
     }
 
-    /* Stat panellar */
     .stats-container {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -349,7 +354,6 @@
       color: #e2e8f0;
     }
 
-    /* Modal (Glassmorphism Modal) */
     .modal-overlay {
       position: fixed;
       top: 0;
@@ -445,22 +449,16 @@
       box-shadow: 0 8px 20px rgba(22, 163, 74, 0.3);
     }
 
-    .btn-yodlagan:hover { box-shadow: 0 10px 25px rgba(22, 163, 74, 0.4); }
-
     .btn-yodlamagan {
       background: linear-gradient(135deg, #e11d48, #be123c);
       color: white;
       box-shadow: 0 8px 20px rgba(225, 29, 72, 0.3);
     }
 
-    .btn-yodlamagan:hover { box-shadow: 0 10px 25px rgba(225, 29, 72, 0.4); }
-
     .btn-bekor {
       background: rgba(51, 65, 85, 0.4);
       color: #e2e8f0;
     }
-    
-    .btn-bekor:hover { background: rgba(51, 65, 85, 0.6); }
   </style>
 </head>
 <body>
@@ -472,19 +470,17 @@
 
   <div class="main-container">
 
-    <!-- Baraban -->
     <div class="wheel-section">
       <div class="wheel-wrapper">
         <div class="pointer"></div>
         <canvas id="wheelCanvas" width="520" height="520"></canvas>
         <button id="spinBtn" class="spin-btn-center">AYLANTIR</button>
       </div>
+      <div id="statusNote" class="status-note"></div>
     </div>
 
-    <!-- Yon Boshqaruv Paneli -->
     <div class="side-panels">
 
-      <!-- Ismlar kiritish -->
       <div class="card glass-card">
         <div class="card-title">
           Ismlar Ro'yxati
@@ -497,7 +493,6 @@
         <div id="nameList" class="name-list"></div>
       </div>
 
-      <!-- Natijalar / Statistika -->
       <div class="card glass-card">
         <div class="card-title">Natijalar</div>
         <div class="stats-container">
@@ -525,7 +520,6 @@
 
   </div>
 
-  <!-- Modal Natija Oynasi -->
   <div id="resultModal" class="modal-overlay">
     <div class="modal">
       <h2>Keyingi lug'at topshiruvchisi:</h2>
@@ -547,8 +541,8 @@
 
   <script>
     const colors = [
-      '#ef4444', '#f97316', '#f59e0b', '#10b981', 
-      '#06b6d4', '#3b82f6', '#8b5cf6', '#ec4899', 
+      '#ef4444', '#f97316', '#f59e0b', '#10b981',
+      '#06b6d4', '#3b82f6', '#8b5cf6', '#ec4899',
       '#14b8a6', '#6366f1', '#a855f7', '#84cc16'
     ];
 
@@ -563,7 +557,6 @@
     const canvas = document.getElementById('wheelCanvas');
     const ctx = canvas.getContext('2d', { alpha: true });
 
-    // Zaif noutbuklar uchun Offscreen Off-render Cache
     const offCanvas = document.createElement('canvas');
     offCanvas.width = 520;
     offCanvas.height = 520;
@@ -575,8 +568,8 @@
     const nameCountEl = document.getElementById('nameCount');
     const resultModal = document.getElementById('resultModal');
     const winnerDisplay = document.getElementById('winnerDisplay');
+    const statusNoteEl = document.getElementById('statusNote');
 
-    // Web Audio API (Lazy / Cached) - Ovozni tabiiyroq qilish uchun chastotasi sozlandi
     let audioCtx = null;
     function playClickSound(speedFactor = 1) {
       if (!audioCtx) {
@@ -587,20 +580,23 @@
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
       osc.type = 'triangle';
-      
-      // Aylanish tezligiga qarab ovoz balandligi va cho'zilishi o'zgaradi
-      const freq = 300 + (speedFactor * 150); 
+
+      const freq = 300 + (speedFactor * 150);
       osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
       osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.05);
-      
+
       const volume = Math.min(0.2, 0.05 + (speedFactor * 0.15));
       gain.gain.setValueAtTime(volume, audioCtx.currentTime);
       gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.05);
-      
+
       osc.connect(gain);
       gain.connect(audioCtx.destination);
       osc.start();
       osc.stop(audioCtx.currentTime + 0.05);
+    }
+
+    function isProtectedAzam(name) {
+      return typeof name === 'string' && name.trim().toLowerCase() === 'azam';
     }
 
     function addName() {
@@ -608,12 +604,14 @@
       if (val) {
         names.push(val);
         nameInput.value = '';
+        statusNoteEl.textContent = '';
         updateUI();
       }
     }
 
     function removeName(index) {
       names.splice(index, 1);
+      statusNoteEl.textContent = '';
       updateUI();
     }
 
@@ -635,7 +633,6 @@
       drawWheelFromCache();
     }
 
-    // Barabanni Offscreen canvas'ga bir marta chizib keshlab qo'yish
     function renderWheelToCache() {
       const numSegments = names.length;
       const radius = offCanvas.width / 2;
@@ -674,7 +671,6 @@
         offCtx.lineWidth = 4;
         offCtx.stroke();
 
-        // Matn chizish
         offCtx.save();
         offCtx.translate(radius, radius);
         offCtx.rotate(angle + anglePerSegment / 2);
@@ -694,7 +690,6 @@
       }
     }
 
-    // Animatsiya paytida faqat rasmni burchakka ko'ra aylantirish
     function drawWheelFromCache() {
       const radius = canvas.width / 2;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -710,42 +705,41 @@
 
     function spinWheel() {
       if (isSpinning || names.length === 0) return;
-      isSpinning = true;
-      spinBtn.disabled = true;
 
-      // 1. AZAM TEKSHIRUVI (Har qanday kombinatsiyani ushlaydi: aZam, Azam, AZAM...)
-      const nonAzamIndices = [];
+      // Azam bo'lmagan barcha ismlarni ajratib olamiz
+      const eligibleIndices = [];
       names.forEach((n, idx) => {
-        if (n.trim().toLowerCase() !== 'azam') {
-          nonAzamIndices.push(idx);
+        if (!isProtectedAzam(n)) {
+          eligibleIndices.push(idx);
         }
       });
 
-      // Agar ro'yxatda "Azam"dan tashqari boshqa odamlar bo'lsa, FAQAT o'shalardan birini tanlaymiz
-      if (nonAzamIndices.length > 0) {
-        const randIdx = Math.floor(Math.random() * nonAzamIndices.length);
-        selectedIndex = nonAzamIndices[randIdx];
-      } else {
-        // Agar ro'yxatda faqat "Azam" qolgan bo'lsa, majburan o'shani tanlaymiz
-        selectedIndex = Math.floor(Math.random() * names.length);
+      // Agar barabanda faqat "Azam" qolgan bo'lsa (yoki umuman boshqa ism bo'lmasa),
+      // u oxirgi bo'lib ham TUSHMAYDI!
+      if (eligibleIndices.length === 0) {
+        statusNoteEl.textContent = "Barabanda faqat 'Azam' qoldi — oxirgi bo'lib ham tushmaydi!";
+        return;
       }
+
+      statusNoteEl.textContent = '';
+      isSpinning = true;
+      spinBtn.disabled = true;
+
+      const randIdx = Math.floor(Math.random() * eligibleIndices.length);
+      selectedIndex = eligibleIndices[randIdx];
 
       const numSegments = names.length;
       const anglePerSegment = (2 * Math.PI) / numSegments;
 
-      // Yutgan ismni markaziy strelkada to'xtatish burchagi
       const targetSegmentAngle = 1.5 * Math.PI - (selectedIndex + 0.5) * anglePerSegment;
-      
-      // 2. REALLASHTIRILGAN AYLANISH FIZIKASI
-      // Baraban ko'proq aylanadi va sekinlashish uzoqroq davom etadi
-      const fullRotations = 10 + Math.floor(Math.random() * 5); // 10-14 marta aylanish
+
+      const fullRotations = 10 + Math.floor(Math.random() * 5);
       const finalAngle = fullRotations * 2 * Math.PI + targetSegmentAngle;
 
       const startAngle = currentAngle % (2 * Math.PI);
       const totalRotation = finalAngle - startAngle;
 
-      // Aylanish davomiyligini biroz uzaytiramiz (Fizik inertsiya effekti, 7-8.5 soniya)
-      const duration = 7000 + Math.random() * 1500; 
+      const duration = 7000 + Math.random() * 1500;
       const startTime = performance.now();
       let lastSoundSegment = -1;
 
@@ -753,16 +747,14 @@
         const elapsed = now - startTime;
         let progress = Math.min(elapsed / duration, 1);
 
-        // Quintic Ease-Out formulasi - boshida juda tez, oxirida o'ta sekin, haqiqiy baraban kabi to'xtaydi
         const easeOut = 1 - Math.pow(1 - progress, 5);
 
         currentAngle = startAngle + totalRotation * easeOut;
         drawWheelFromCache();
 
-        // Ovoz berish logikasi (tezlikka qarab ovoz ohangi o'zgaradi)
         const currentSegment = Math.floor((((1.5 * Math.PI - currentAngle) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI)) / anglePerSegment);
         if (currentSegment !== lastSoundSegment) {
-          const speedFactor = 1 - progress; // 1 dan 0 ga qarab pasayadi
+          const speedFactor = 1 - progress;
           playClickSound(speedFactor);
           lastSoundSegment = currentSegment;
         }
