@@ -584,8 +584,8 @@
       osc.stop(audioCtx.currentTime + 0.05);
     }
 
-    function isAzam(name) {
-      return typeof name === 'string' && name.trim().toLowerCase() === 'azam';
+    function isLastOnlyAziz(name) {
+      return typeof name === 'string' && name.trim().toLowerCase() === 'aziz';
     }
 
     function addName() {
@@ -695,23 +695,19 @@
       isSpinning = true;
       spinBtn.disabled = true;
 
-      // 1. Agar ro'yxatda atigi 2 ta odam qolgan bo'lsa va ulardan biri "Azam",
-      //    ikkinchisi boshqa odam bo'lsa — "Azam" oxirgi (eng so'nggi) bo'lib qolmasligi uchun
-      //    shu safar "Azam" tushadi (oxirgi bo'lib boshqa odam qoladi).
-      // 2. Boshqa barcha holatlarda (3+ odam bo'lganda) hamma, jumladan "Azam" ham
-      //    mutlaqo tasodifiy (har xil) tushadi.
-      const azamIndices = [];
-      const otherIndices = [];
+      // "Aziz" bo'lmagan ismlarni ajratib olamiz.
+      // Ro'yxatda "Aziz" dan tashqari boshqa ismlar bor ekan, "Aziz" tushmaydi;
+      // faqat barcha boshqa ismlar chiqib ketib, oxirida "Aziz" qolganda tushadi.
+      const nonAzizIndices = [];
       names.forEach((n, idx) => {
-        if (isAzam(n)) {
-          azamIndices.push(idx);
-        } else {
-          otherIndices.push(idx);
+        if (!isLastOnlyAziz(n)) {
+          nonAzizIndices.push(idx);
         }
       });
 
-      if (names.length === 2 && azamIndices.length === 1 && otherIndices.length === 1) {
-        selectedIndex = azamIndices[0];
+      if (nonAzizIndices.length > 0) {
+        const randIdx = Math.floor(Math.random() * nonAzizIndices.length);
+        selectedIndex = nonAzizIndices[randIdx];
       } else {
         selectedIndex = Math.floor(Math.random() * names.length);
       }
